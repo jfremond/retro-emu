@@ -1,5 +1,6 @@
 mod cartridge;
 mod registers;
+mod display;
 
 fn main() {
     let args = std::env::args().skip(1).collect::<Box<[_]>>();
@@ -15,4 +16,5 @@ fn main() {
     let cartridge = cartridge::load_cartridge_path(rom_path).unwrap();
 
     _ = cartridge;
+    display::create_window();
 }
