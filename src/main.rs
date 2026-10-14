@@ -59,7 +59,9 @@ fn main() {
         let mut count: i32 = 0;
         while count < index {
             count += 1;
-            tx.send(count).unwrap(); // send value of count
+            if tx.send(count).is_err() {
+                break;
+            } // send value of count
             thread::sleep(Duration::from_millis(500));
         }
     });
