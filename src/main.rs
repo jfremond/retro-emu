@@ -20,7 +20,7 @@ fn main() {
     //     println!("{}", args[1])
     // } else {
     // };
-    println!("{}", args.len());
+    println!("nb of args: [{}]", args.len());
     // if arg len < 1 => error
     // if arg len == 1 => arg[0] = rom_path
     // if arg len == 2 => arg[0] = rom_path && arg[1] = "debug"
@@ -66,6 +66,7 @@ fn main() {
                 continue;
             }
             count += 1;
+            println!("count: {}", count);
             if tx.send(count).is_err() {
                 break;
             } // send value of count
@@ -73,6 +74,5 @@ fn main() {
         }
     });
     display::create_window(rx, pause);
-
     emulator_thread.join().unwrap();
 }

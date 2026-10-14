@@ -5,7 +5,6 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
 use std::sync::Arc;
-// use std::sync::atomic::AtomicBool;
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -33,7 +32,10 @@ pub fn create_window(rx: Receiver<i32>, pause: Arc<AtomicBool>) {
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit {..} |
-                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => break 'running,
+                Event::KeyDown { keycode: Some(Keycode::Escape), .. } =>  {
+                    pause.store(false, Ordering::Relaxed);
+                    break 'running
+                },
                 Event::KeyDown { keycode: Some(Keycode::Space), repeat: false, .. } => {
                     pause.fetch_xor(true, Ordering::Relaxed); // toggle
                 }
