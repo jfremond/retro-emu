@@ -4,10 +4,13 @@ use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
+use std::sync::Arc;
+// use std::sync::atomic::AtomicBool;
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
+use std::sync::atomic::{AtomicBool, Ordering};
 
-pub fn create_window(rx: Receiver<i32>) {
+pub fn create_window(rx: Receiver<i32>, pause: Arc<AtomicBool>) {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
     let ttf_context= sdl2::ttf::init().unwrap();
@@ -30,9 +33,10 @@ pub fn create_window(rx: Receiver<i32>) {
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit {..} |
-                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
-                    break 'running
-                },
+                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => break 'running,
+                Event::KeyDown { keycode: Some(Keycode::Space), repeat: false, .. } => {
+                    pause.fetch_xor(true, Ordering::Relaxed); // toggle
+                }
                 _ => {}
             }
         }
@@ -43,8 +47,13 @@ pub fn create_window(rx: Receiver<i32>) {
         canvas.set_draw_color(Color::RGB(0, 0, 0));
         canvas.clear();
         // draw the text
+        let label = if pause.load(Ordering::Relaxed) {
+            format!("count: {count} paused")
+        } else {
+            format!("count: {count}")
+        };
         let surface= font
-        .render(&format!("count: {count}"))
+        .render(&label)
         .blended(Color::RGB(255, 255, 255))
         .unwrap();
 

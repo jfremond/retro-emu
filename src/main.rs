@@ -1,9 +1,10 @@
 mod cartridge;
 mod registers;
 mod display;
-use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{mpsc, Arc};
 
 fn main() {
 
@@ -54,10 +55,16 @@ fn main() {
 
     let index: i32 = 10;
     let (tx, rx) = mpsc::channel::<i32>();
+    let pause = Arc::new(AtomicBool::new(false));
+    let paused_emu = Arc::clone(&pause);
 
     let emulator_thread = thread::spawn(move || {
         let mut count: i32 = 0;
         while count < index {
+            if paused_emu.load(Ordering::Relaxed) {
+                thread::sleep(Duration::from_millis(10));
+                continue;
+            }
             count += 1;
             if tx.send(count).is_err() {
                 break;
@@ -65,7 +72,7 @@ fn main() {
             thread::sleep(Duration::from_millis(500));
         }
     });
-    display::create_window(rx);
+    display::create_window(rx, pause);
 
     emulator_thread.join().unwrap();
 }
